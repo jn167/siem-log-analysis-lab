@@ -1,0 +1,13 @@
+# Never commit real secrets from the lab
+wazuh-passwords.txt
+wazuh-install-files*
+*.pem
+*.key
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Keep the screenshots folder but not stray large captures you don't link
+# (delete this line if you want to track everything)
+screenshots/*.tmp

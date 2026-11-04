@@ -1,0 +1,83 @@
+<!--
+  Custom detection rules for the SIEM & Log Analysis Lab.
+  Install on the Wazuh server at: /var/ossec/etc/rules/local_rules.xml
+  Custom rule IDs must be in the 100000-120000 range.
+
+  Note on Windows paths: Wazuh stores backslashes in event fields escaped,
+  so these rules match on file names (powershell.exe) instead of full paths.
+
+  Note on levels: when several sibling rules could match, Wazuh tries them
+  from highest level to lowest and the first match wins. Rule 100100 is
+  level 13 so it is checked before the built-in rule 92057 (level 12).
+-->
+
+<!-- ================= Windows (Sysmon Event ID 1: Process creation) ================= -->
+<group name="lab,windows,sysmon,">
+
+  <!-- T1059.001: PowerShell with an encoded command.
+       Matches -e, -ec, -en, -enc ... -encodedcommand (but not -ExecutionPolicy). -->
+  <rule id="100100" level="13">
+    <if_group>sysmon_event1</if_group>
+    <field name="win.eventdata.image" type="pcre2">(?i)(powershell|pwsh)\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)\s-(e|ec|en|enc|enco|encod|encode|encoded|encodedc|encodedco|encodedcom|encodedcomm|encodedcomma|encodedcomman|encodedcommand)\s</field>
+    <description>Lab: PowerShell launched with an encoded command on $(win.system.computer)</description>
+    <mitre>
+      <id>T1059.001</id>
+    </mitre>
+  </rule>
+
+  <!-- T1105: PowerShell pulling content from the web -->
+  <rule id="100101" level="10">
+    <if_group>sysmon_event1</if_group>
+    <field name="win.eventdata.image" type="pcre2">(?i)(powershell|pwsh)\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(invoke-webrequest|\biwr\b|downloadstring|downloadfile|net\.webclient|start-bitstransfer)</field>
+    <description>Lab: PowerShell downloading content from the web on $(win.system.computer)</description>
+    <mitre>
+      <id>T1105</id>
+    </mitre>
+  </rule>
+
+  <!-- T1053.005: Scheduled task created from the command line -->
+  <rule id="100102" level="10">
+    <if_group>sysmon_event1</if_group>
+    <field name="win.eventdata.image" type="pcre2">(?i)schtasks\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)/create</field>
+    <description>Lab: Scheduled task created with schtasks.exe on $(win.system.computer)</description>
+    <mitre>
+      <id>T1053.005</id>
+    </mitre>
+  </rule>
+
+</group>
+
+<!-- ================= Windows (Security log) ================= -->
+<group name="lab,windows,">
+
+  <!-- T1098: Member added to the local Administrators group (Event ID 4732) -->
+  <rule id="100110" level="12">
+    <if_group>windows</if_group>
+    <field name="win.system.eventID">^4732$</field>
+    <field name="win.eventdata.targetUserName" type="pcre2">(?i)^administrators$</field>
+    <description>Lab: Account added to the local Administrators group on $(win.system.computer)</description>
+    <mitre>
+      <id>T1098</id>
+    </mitre>
+  </rule>
+
+</group>
+
+<!-- ================= Linux ================= -->
+<group name="lab,linux,">
+
+  <!-- T1003.008: Reading /etc/shadow with sudo.
+       5402 = successful sudo to root, 5403 = first time a user ran sudo. -->
+  <rule id="100200" level="12">
+    <if_sid>5402,5403</if_sid>
+    <match>/etc/shadow</match>
+    <description>Lab: /etc/shadow accessed with sudo</description>
+    <mitre>
+      <id>T1003.008</id>
+    </mitre>
+  </rule>
+
+</group>
