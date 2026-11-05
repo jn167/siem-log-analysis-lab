@@ -32,6 +32,18 @@ Installed Ubuntu Server 24.04.5 on the `wazuh-server` VM.
 - Skipped the **Ubuntu Pro** prompt ("Skip for now") and the featured snaps; neither is needed here.
 - Verified networking after first boot with `ip a`, which showed `10.0.50.10/24`.
 
+[![Ubuntu Server installer boot menu](../screenshots/01-ubuntu-installer-boot.png)](../screenshots/01-ubuntu-installer-boot.png)
+*Booting the Ubuntu Server 24.04 installer in VirtualBox.*
+
+[![Static IP configuration](../screenshots/02-static-ip.png)](../screenshots/02-static-ip.png)
+*Static IP set during install: address 10.0.50.10/24, gateway and DNS 10.0.50.1 (the NAT network has DHCP off).*
+
+[![OpenSSH server install](../screenshots/03-openssh.png)](../screenshots/03-openssh.png)
+*Enabling the OpenSSH server so the host can manage the VM over SSH.*
+
+[![ip a output showing the static address](../screenshots/04-ip-a.png)](../screenshots/04-ip-a.png)
+*First boot: `ip a` confirms `enp0s3` has the static address 10.0.50.10/24, running Ubuntu 24.04.5 LTS.*
+
 ---
 
 ## Troubleshooting

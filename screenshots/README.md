@@ -1,17 +1,20 @@
 # Screenshots
 
-Drop evidence here and link it from the phase docs and the main README.
+Evidence captured during the build, referenced from the [build log](../docs/build-log.md) and the main README.
 
-Suggested shots (see the checklist at the end of each phase doc):
+## Phase 1 and 2: wazuh-server setup
 
-- `01-virtualbox-vms.png` - all four VMs in VirtualBox Manager
-- `02-dashboard-home.png` - Wazuh dashboard after first login
-- `03-agents-active.png` - both agents showing Active
-- `03-sysmon-event.png` - a Sysmon Event 1 in Threat Hunting
-- `06-windows-alerts.png` - custom rules 100100-100110 firing
-- `06-linux-shadow.png` - custom rule 100200 firing
-- `06-ssh-bruteforce.png` - rule 5763 then 5715
-- `07-mitre.png` - MITRE ATT&CK framework view
-- `07-dashboard.png` - the SIEM Lab Overview dashboard
+- `01-ubuntu-installer-boot.png` - Ubuntu Server 24.04 installer boot menu
+- `02-static-ip.png` - static IP configured during install (10.0.50.10/24)
+- `03-openssh.png` - OpenSSH server enabled
+- `04-ip-a.png` - first boot, `ip a` confirming 10.0.50.10
 
-Blur or crop anything sensitive (passwords, your real home network) before committing.
+## Still to capture (later phases)
+
+- Wazuh dashboard after first login
+- Both agents showing Active
+- Custom detection rules firing (100100-100200)
+- SSH brute-force alert (rule 5763) then success
+- MITRE ATT&CK framework view and the SOC dashboard
+
+Blur or crop anything sensitive before committing.
