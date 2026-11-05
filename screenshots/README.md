@@ -8,6 +8,10 @@ Evidence captured during the build, referenced from the [build log](../docs/buil
 - `02-static-ip.png` - static IP configured during install (10.0.50.10/24)
 - `03-openssh.png` - OpenSSH server enabled
 - `04-ip-a.png` - first boot, `ip a` confirming 10.0.50.10
+- `05-disk-space-fix.png` - diagnosing and fixing the "no space left" error (LVM expand)
+- `06-install-summary.png` - Wazuh install summary
+- `07-wazuh-login.png` - Wazuh dashboard login page
+- `08-wazuh-dashboard.png` - Wazuh dashboard overview after first login
 
 ## Still to capture (later phases)
 

@@ -41,7 +41,10 @@ This lab is in active development. The sections below describe the full design; 
 - [ ] Attack simulations executed and alerts confirmed
 - [ ] Dashboard built and investigations written up
 
-> 💡 The full step-by-step build guide lives in [`docs/`](docs/), one file per phase. A running [build log](docs/build-log.md) records what was actually done and the problems hit along the way (VT-x, install quirks). This README is the portfolio write-up; the docs are the how-to.
+> 💡 The full step-by-step build guide lives in [`docs/`](docs/), one file per phase. A running [build log](docs/build-log.md) records what was actually done and the problems hit along the way (VT-x, LVM disk space, port conflicts). This README is the portfolio write-up; the docs are the how-to.
+
+[![Wazuh dashboard overview](screenshots/08-wazuh-dashboard.png)](screenshots/08-wazuh-dashboard.png)
+*The Wazuh SIEM running on the lab server. Endpoints and detections come next; agent telemetry will populate the severity counts.*
 
 ---
 

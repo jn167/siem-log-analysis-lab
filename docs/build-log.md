@@ -57,6 +57,12 @@ sudo bash ./wazuh-install.sh -a
 
 The first run failed; recovering it is documented in Troubleshooting #3 and #4 below. After expanding the disk and clearing a leftover install, the second run (`-a -o`) completed. All three services came up `active (running)`, with the dashboard listening on 443. Reached it from the host browser at `https://localhost:8443` (through the SIEMLab port forward) and logged in as `admin`.
 
+[![Wazuh login page](../screenshots/07-wazuh-login.png)](../screenshots/07-wazuh-login.png)
+*The Wazuh dashboard login, reached from the host at https://localhost:8443.*
+
+[![Wazuh dashboard overview](../screenshots/08-wazuh-dashboard.png)](../screenshots/08-wazuh-dashboard.png)
+*The Wazuh overview after first login. No agents are registered yet (endpoints come next); the medium/low alert counts are the server monitoring itself.*
+
 > 💡 Managing the server over SSH from the host (`ssh billnye@127.0.0.1 -p 2210`, via the port forward) made troubleshooting far easier than typing in the VM console, mostly because it allows copy and paste.
 
 ---
@@ -118,6 +124,9 @@ sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
 ```
 
 `df -h /` then showed ~57 GB, with no data loss.
+
+[![Disk space diagnosis and fix](../screenshots/05-disk-space-fix.png)](../screenshots/05-disk-space-fix.png)
+*The full sequence: the "No space left on device" error, diagnosing with `df`/`vgs`, expanding the volume with `lvextend` + `resize2fs`, and `df` confirming root grew from 29 GB to 57 GB.*
 
 > 💡 Lesson: Ubuntu Server's guided install often allocates only part of the disk to the root LVM volume. Check `df -h /` early; if root is smaller than the disk you created, `lvextend -l +100%FREE` plus `resize2fs` claims the rest.
 
