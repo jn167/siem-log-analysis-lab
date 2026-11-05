@@ -46,6 +46,21 @@ Installed Ubuntu Server 24.04.5 on the `wazuh-server` VM.
 
 ---
 
+## Phase 3: Wazuh install on wazuh-server
+
+Installed Wazuh 4.14 (manager, indexer, and dashboard) with the all-in-one assistant:
+
+```
+curl -sO https://packages.wazuh.com/4.14/wazuh-install.sh
+sudo bash ./wazuh-install.sh -a
+```
+
+The first run failed; recovering it is documented in Troubleshooting #3 and #4 below. After expanding the disk and clearing a leftover install, the second run (`-a -o`) completed. All three services came up `active (running)`, with the dashboard listening on 443. Reached it from the host browser at `https://localhost:8443` (through the SIEMLab port forward) and logged in as `admin`.
+
+> 💡 Managing the server over SSH from the host (`ssh billnye@127.0.0.1 -p 2210`, via the port forward) made troubleshooting far easier than typing in the VM console, mostly because it allows copy and paste.
+
+---
+
 ## Troubleshooting
 
 ### 1. VT-x disabled in BIOS (VM would not start)
@@ -84,9 +99,63 @@ After enabling it, the VM started and the installer booted normally.
 
 > 💡 Lesson: this message at install-reboot is expected in VirtualBox and safe to ignore. If the VM boots back into the installer, the ISO is still attached; remove it from the optical drive and boot again.
 
+### 3. Wazuh install failed: "No space left on device"
+
+**Symptom.** The first `wazuh-install.sh -a` run failed partway: the dashboard step errored and the manager service refused to start. The install log showed the real cause:
+
+```
+E: Write error - write (28: No space left on device)
+ERROR: Wazuh dashboard installation failed.
+```
+
+**Cause.** The Ubuntu Server installer's default LVM layout gave the root filesystem only ~29 GB of the 60 GB virtual disk; the other ~29 GB sat unallocated in the volume group. Wazuh's indexer and dashboard filled the 29 GB, so the install aborted and rolled itself back.
+
+**Fix.** Expanded the root logical volume to use the whole disk, then grew the filesystem onto it:
+
+```
+sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
+sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
+```
+
+`df -h /` then showed ~57 GB, with no data loss.
+
+> 💡 Lesson: Ubuntu Server's guided install often allocates only part of the disk to the root LVM volume. Check `df -h /` early; if root is smaller than the disk you created, `lvextend -l +100%FREE` plus `resize2fs` claims the rest.
+
+### 4. Reinstall blocked: ports 1515/55000 in use and a wedged package
+
+**Symptom.** Re-running the installer failed with:
+
+```
+ERROR: Port 1515 is being used by another process.
+ERROR: Port 55000 is being used by another process.
+```
+
+and removing the leftover manager failed:
+
+```
+dpkg: error processing package wazuh-manager (--remove):
+ installed wazuh-manager package pre-removal script subprocess returned error exit status 127
+```
+
+**Cause.** The first, half-finished install left the `wazuh-manager` package partly installed, with its processes still running and holding the agent-enrollment (1515) and API (55000) ports. Its removal script failed (exit 127: it called a Wazuh binary that had already been deleted), so neither the installer nor `apt` could clean it up.
+
+**Fix.** Deleted the broken maintainer scripts so dpkg could finish, purged the package, killed the stragglers, and removed the leftover directory:
+
+```
+sudo rm -f /var/lib/dpkg/info/wazuh-manager.prerm /var/lib/dpkg/info/wazuh-manager.postrm
+sudo dpkg --purge wazuh-manager
+sudo pkill -9 -f wazuh
+sudo rm -rf /var/ossec
+```
+
+With the ports free and the package gone, `sudo bash ./wazuh-install.sh -a -o` completed cleanly.
+
+> 💡 Lesson: a package whose removal script exits 127 is usually missing a file the script expects. Deleting the stale `prerm`/`postrm` scripts under `/var/lib/dpkg/info/` lets dpkg finish the removal; then clear leftover files and ports by hand.
+
 ---
 
 ## Next up
 
-- Install Ubuntu on `linux-endpoint` and Windows 11 on `win-endpoint`, import the Kali VM.
-- Deploy Wazuh (manager, indexer, dashboard) on `wazuh-server` and reach the dashboard from the host.
+- Connect the first endpoint: install the Wazuh agent and Sysmon on `win-endpoint` (Windows 11) so Windows telemetry flows into the SIEM.
+- Install Ubuntu on `linux-endpoint`, add the Wazuh agent there, and import the Kali attacker VM.
+- Load the custom detection rules and run the first attack simulation.

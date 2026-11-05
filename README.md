@@ -34,7 +34,7 @@ This lab is in active development. The sections below describe the full design; 
 - [x] `wazuh-server`: Ubuntu Server 24.04 installed, static IP 10.0.50.10, OpenSSH enabled
 - [ ] `win-endpoint` and `linux-endpoint`: OS installed and given static IPs
 - [ ] Kali attacker VM imported
-- [ ] Wazuh server deployed (manager, indexer, dashboard)
+- [x] Wazuh server deployed (manager, indexer, dashboard); dashboard reachable at `https://localhost:8443`
 - [ ] Windows agent + Sysmon reporting
 - [ ] Linux agent reporting
 - [ ] Custom detection rules loaded and validated
