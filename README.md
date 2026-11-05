@@ -28,19 +28,23 @@ This is the first lab in my cybersecurity home lab series. I deploy the [Wazuh](
 This lab is in active development. The sections below describe the full design; the checklist shows what is actually stood up so far.
 
 - [x] Lab designed: architecture, detection rules authored, attack simulations scripted
-- [x] Host prep: VirtualBox 7.1 installed, OS images downloaded (Ubuntu 24.04.5, Windows 11 Enterprise eval, Kali)
+- [x] Host prep: VirtualBox 7.1 installed, VT-x enabled in BIOS, OS images downloaded (Ubuntu 24.04.5, Windows 11 Enterprise eval, Kali)
 - [x] Lab network created: `SIEMLab` NAT network (10.0.50.0/24) with host port forwards
 - [x] VM shells created and attached to the lab network: `wazuh-server`, `win-endpoint`, `linux-endpoint`
+- [x] `wazuh-server`: Ubuntu Server 24.04 installed, static IP 10.0.50.10, OpenSSH enabled
+- [ ] `win-endpoint` and `linux-endpoint`: OS installed and given static IPs
 - [ ] Kali attacker VM imported
-- [ ] Operating systems installed and given static IPs
-- [ ] Wazuh server deployed (manager, indexer, dashboard)
+- [x] Wazuh server deployed (manager, indexer, dashboard); dashboard reachable at `https://localhost:8443`
 - [ ] Windows agent + Sysmon reporting
 - [ ] Linux agent reporting
 - [ ] Custom detection rules loaded and validated
 - [ ] Attack simulations executed and alerts confirmed
 - [ ] Dashboard built and investigations written up
 
-> 💡 The full step-by-step build guide lives in [`docs/`](docs/), one file per phase. This README is the portfolio write-up; the docs are the how-to.
+> 💡 The full step-by-step build guide lives in [`docs/`](docs/), one file per phase. A running [build log](docs/build-log.md) records what was actually done and the problems hit along the way (VT-x, LVM disk space, port conflicts). This README is the portfolio write-up; the docs are the how-to.
+
+[![Wazuh dashboard overview](screenshots/08-wazuh-dashboard.png)](screenshots/08-wazuh-dashboard.png)
+*The Wazuh SIEM running on the lab server. Endpoints and detections come next; agent telemetry will populate the severity counts.*
 
 ---
 

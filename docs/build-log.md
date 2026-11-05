@@ -1,0 +1,170 @@
+# Build Log
+
+A chronological record of building this lab: what I set up, what broke, and how I fixed it. Kept as a running journal so the problems (and solutions) are documented, not just the happy path.
+
+---
+
+## Phase 1: Host, network, and VM shells
+
+**Host:** Windows 10, 32 GB RAM, running VirtualBox 7.1.4.
+
+- Created an isolated VirtualBox NAT network, `SIEMLab` (10.0.50.0/24, DHCP off), with host port forwards for the Wazuh dashboard and SSH.
+- Created three VM shells and attached each one's Adapter 1 to the `SIEMLab` network: `wazuh-server` (Ubuntu, 8 GB / 4 vCPU / 60 GB), `win-endpoint` (Windows 11, 6 GB / 2 vCPU / 64 GB), `linux-endpoint` (Ubuntu, 2 GB / 1 vCPU / 25 GB).
+- Downloaded the OS media: Ubuntu Server 24.04.5 LTS, Windows 11 Enterprise (evaluation), and Kali Linux.
+
+> 💡 Chose Ubuntu 24.04 LTS over the newer 26.04 on purpose: 24.04 is the newest release on Wazuh's supported-OS list, so the install stays friction-free. A lab is for learning the SIEM, not debugging an unsupported base OS.
+
+### Issue: VirtualBox only offered 32-bit guest types
+
+When creating the Ubuntu VMs, the **Version** dropdown didn't show a 64-bit Ubuntu option at first. Two parts to this:
+
+- In VirtualBox 7.1 the wizard has a **Subtype** field between Type and Version. I had to set **Subtype = Ubuntu** before the Version list showed the Ubuntu entries.
+- 64-bit guest types only appear once hardware virtualization is enabled on the host (see the VT-x issue below). With it disabled, VirtualBox hides them.
+
+---
+
+## Phase 2: wazuh-server OS install
+
+Installed Ubuntu Server 24.04.5 on the `wazuh-server` VM.
+
+- Set a **static IP during install**: address `10.0.50.10/24`, gateway `10.0.50.1`, DNS `10.0.50.1` (the NAT network has DHCP off, so each host gets a fixed address).
+- Checked **Install OpenSSH server** so the box can be managed by SSH from the host.
+- Skipped the **Ubuntu Pro** prompt ("Skip for now") and the featured snaps; neither is needed here.
+- Verified networking after first boot with `ip a`, which showed `10.0.50.10/24`.
+
+[![Ubuntu Server installer boot menu](../screenshots/01-ubuntu-installer-boot.png)](../screenshots/01-ubuntu-installer-boot.png)
+*Booting the Ubuntu Server 24.04 installer in VirtualBox.*
+
+[![Static IP configuration](../screenshots/02-static-ip.png)](../screenshots/02-static-ip.png)
+*Static IP set during install: address 10.0.50.10/24, gateway and DNS 10.0.50.1 (the NAT network has DHCP off).*
+
+[![OpenSSH server install](../screenshots/03-openssh.png)](../screenshots/03-openssh.png)
+*Enabling the OpenSSH server so the host can manage the VM over SSH.*
+
+[![ip a output showing the static address](../screenshots/04-ip-a.png)](../screenshots/04-ip-a.png)
+*First boot: `ip a` confirms `enp0s3` has the static address 10.0.50.10/24, running Ubuntu 24.04.5 LTS.*
+
+---
+
+## Phase 3: Wazuh install on wazuh-server
+
+Installed Wazuh 4.14 (manager, indexer, and dashboard) with the all-in-one assistant:
+
+```
+curl -sO https://packages.wazuh.com/4.14/wazuh-install.sh
+sudo bash ./wazuh-install.sh -a
+```
+
+The first run failed; recovering it is documented in Troubleshooting #3 and #4 below. After expanding the disk and clearing a leftover install, the second run (`-a -o`) completed. All three services came up `active (running)`, with the dashboard listening on 443. Reached it from the host browser at `https://localhost:8443` (through the SIEMLab port forward) and logged in as `admin`.
+
+[![Wazuh login page](../screenshots/07-wazuh-login.png)](../screenshots/07-wazuh-login.png)
+*The Wazuh dashboard login, reached from the host at https://localhost:8443.*
+
+[![Wazuh dashboard overview](../screenshots/08-wazuh-dashboard.png)](../screenshots/08-wazuh-dashboard.png)
+*The Wazuh overview after first login. No agents are registered yet (endpoints come next); the medium/low alert counts are the server monitoring itself.*
+
+> 💡 Managing the server over SSH from the host (`ssh billnye@127.0.0.1 -p 2210`, via the port forward) made troubleshooting far easier than typing in the VM console, mostly because it allows copy and paste.
+
+---
+
+## Troubleshooting
+
+### 1. VT-x disabled in BIOS (VM would not start)
+
+**Symptom.** Starting `wazuh-server` failed immediately with:
+
+```
+not in a hypervisor partition (HVP=0) (VERR_NEM_NOT_AVAILABLE)
+VT-x is disabled in the BIOS for all CPU modes (VERR_VMX_MSR_ALL_VMX_DISABLED)
+```
+
+**Cause.** Hardware virtualization (Intel VT-x) was turned off in the host's BIOS. VirtualBox needs it to run 64-bit guests, so the VM could not launch (and, as noted above, 64-bit guest types were hidden in the VM wizard).
+
+**Fix.** Enabled virtualization in UEFI firmware:
+
+1. Windows **Settings > System > Recovery > Advanced startup > Restart now**.
+2. **Troubleshoot > Advanced options > UEFI Firmware Settings > Restart**.
+3. In the firmware, enabled **Intel (VMX) Virtualization Technology** (VMX is Intel's internal name for VT-x, which is exactly what `VERR_VMX_...` refers to).
+4. Save and exit (F10), reboot.
+
+After enabling it, the VM started and the installer booted normally.
+
+> 💡 Lesson: enable VT-x first. Without it, VirtualBox both refuses to start VMs and hides the 64-bit guest options, which makes the earlier "no 64-bit Ubuntu" symptom look like a separate problem when it is the same root cause.
+
+### 2. "Failed unmounting cdrom.mount - /cdrom" on post-install reboot
+
+**Symptom.** At the end of the Ubuntu install, on the reboot, the console printed:
+
+```
+[FAILED] Failed unmounting cdrom.mount - /cdrom.
+```
+
+**Meaning.** Harmless. The installer could not cleanly unmount the install ISO because it was still attached to the VM's virtual optical drive. It is not an installation failure.
+
+**Fix.** Powered the VM off, confirmed the optical drive was empty under **Settings > Storage** (VirtualBox had already auto-ejected the ISO), and booted again. The VM then came up to the normal login prompt instead of relaunching the installer.
+
+> 💡 Lesson: this message at install-reboot is expected in VirtualBox and safe to ignore. If the VM boots back into the installer, the ISO is still attached; remove it from the optical drive and boot again.
+
+### 3. Wazuh install failed: "No space left on device"
+
+**Symptom.** The first `wazuh-install.sh -a` run failed partway: the dashboard step errored and the manager service refused to start. The install log showed the real cause:
+
+```
+E: Write error - write (28: No space left on device)
+ERROR: Wazuh dashboard installation failed.
+```
+
+**Cause.** The Ubuntu Server installer's default LVM layout gave the root filesystem only ~29 GB of the 60 GB virtual disk; the other ~29 GB sat unallocated in the volume group. Wazuh's indexer and dashboard filled the 29 GB, so the install aborted and rolled itself back.
+
+**Fix.** Expanded the root logical volume to use the whole disk, then grew the filesystem onto it:
+
+```
+sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
+sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
+```
+
+`df -h /` then showed ~57 GB, with no data loss.
+
+[![Disk space diagnosis and fix](../screenshots/05-disk-space-fix.png)](../screenshots/05-disk-space-fix.png)
+*The full sequence: the "No space left on device" error, diagnosing with `df`/`vgs`, expanding the volume with `lvextend` + `resize2fs`, and `df` confirming root grew from 29 GB to 57 GB.*
+
+> 💡 Lesson: Ubuntu Server's guided install often allocates only part of the disk to the root LVM volume. Check `df -h /` early; if root is smaller than the disk you created, `lvextend -l +100%FREE` plus `resize2fs` claims the rest.
+
+### 4. Reinstall blocked: ports 1515/55000 in use and a wedged package
+
+**Symptom.** Re-running the installer failed with:
+
+```
+ERROR: Port 1515 is being used by another process.
+ERROR: Port 55000 is being used by another process.
+```
+
+and removing the leftover manager failed:
+
+```
+dpkg: error processing package wazuh-manager (--remove):
+ installed wazuh-manager package pre-removal script subprocess returned error exit status 127
+```
+
+**Cause.** The first, half-finished install left the `wazuh-manager` package partly installed, with its processes still running and holding the agent-enrollment (1515) and API (55000) ports. Its removal script failed (exit 127: it called a Wazuh binary that had already been deleted), so neither the installer nor `apt` could clean it up.
+
+**Fix.** Deleted the broken maintainer scripts so dpkg could finish, purged the package, killed the stragglers, and removed the leftover directory:
+
+```
+sudo rm -f /var/lib/dpkg/info/wazuh-manager.prerm /var/lib/dpkg/info/wazuh-manager.postrm
+sudo dpkg --purge wazuh-manager
+sudo pkill -9 -f wazuh
+sudo rm -rf /var/ossec
+```
+
+With the ports free and the package gone, `sudo bash ./wazuh-install.sh -a -o` completed cleanly.
+
+> 💡 Lesson: a package whose removal script exits 127 is usually missing a file the script expects. Deleting the stale `prerm`/`postrm` scripts under `/var/lib/dpkg/info/` lets dpkg finish the removal; then clear leftover files and ports by hand.
+
+---
+
+## Next up
+
+- Connect the first endpoint: install the Wazuh agent and Sysmon on `win-endpoint` (Windows 11) so Windows telemetry flows into the SIEM.
+- Install Ubuntu on `linux-endpoint`, add the Wazuh agent there, and import the Kali attacker VM.
+- Load the custom detection rules and run the first attack simulation.
