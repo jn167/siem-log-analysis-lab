@@ -176,4 +176,4 @@ I used Claude (Anthropic) as an assistant to scaffold this lab: drafting the det
 
 ---
 
-<sub>Built by Justin "Jay" Nguyen · Pursuing CompTIA A+ and Security+ · Part of an ongoing cybersecurity home lab series.</sub>
+<sub>Built by Justin Nguyen · Pursuing CompTIA A+ and Security+ · Part of an ongoing cybersecurity home lab series.</sub>
