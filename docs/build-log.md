@@ -67,6 +67,32 @@ The first run failed; recovering it is documented in Troubleshooting #3 and #4 b
 
 ---
 
+## Phase 4: Linux endpoint (linux-endpoint)
+
+Installed Ubuntu Server 24.04 on `linux-endpoint` with the static IP `10.0.50.30`. This time I left **LVM off** at the storage step, so root uses the whole disk directly and the disk-space problem from the server can't recur here.
+
+Then installed the Wazuh agent and enrolled it against the manager:
+
+```
+curl -s https://packages.wazuh.com/key/GPG-KEY-WAZUH | sudo gpg --no-default-keyring --keyring gnupg-ring:/usr/share/keyrings/wazuh.gpg --import && sudo chmod 644 /usr/share/keyrings/wazuh.gpg
+echo "deb [signed-by=/usr/share/keyrings/wazuh.gpg] https://packages.wazuh.com/4.x/apt/ stable main" | sudo tee /etc/apt/sources.list.d/wazuh.list
+sudo apt-get update
+sudo WAZUH_MANAGER="10.0.50.10" WAZUH_AGENT_NAME="linux-endpoint" apt-get install -y wazuh-agent
+sudo systemctl daemon-reload && sudo systemctl enable --now wazuh-agent
+```
+
+The `WAZUH_MANAGER="10.0.50.10"` variable is what points the agent at the server and enrolls it. The agent registered as **agent 001** and shows **active** in the dashboard.
+
+[![linux-endpoint static IP](../screenshots/09-linux-ip-a.png)](../screenshots/09-linux-ip-a.png)
+*`linux-endpoint` on the lab network at 10.0.50.30.*
+
+[![linux-endpoint active in Wazuh](../screenshots/10-linux-agent-active.png)](../screenshots/10-linux-agent-active.png)
+*The Wazuh Endpoints view: `linux-endpoint` (agent 001) reporting as active, running Ubuntu 24.04.5 LTS.*
+
+> 💡 The server and the endpoints are separate VMs, so the agent and the dashboard only work while `wazuh-server` is also running. The dashboard was unreachable and the agent could not enroll at first because the server VM was powered off; starting it fixed both. The agent-log line `Buffer agent.conf updated` confirms a live connection to the manager.
+
+---
+
 ## Troubleshooting
 
 ### 1. VT-x disabled in BIOS (VM would not start)
@@ -165,6 +191,6 @@ With the ports free and the package gone, `sudo bash ./wazuh-install.sh -a -o` c
 
 ## Next up
 
-- Connect the first endpoint: install the Wazuh agent and Sysmon on `win-endpoint` (Windows 11) so Windows telemetry flows into the SIEM.
-- Install Ubuntu on `linux-endpoint`, add the Wazuh agent there, and import the Kali attacker VM.
-- Load the custom detection rules and run the first attack simulation.
+- Set up the Windows endpoint: install Windows 11 on `win-endpoint`, then Sysmon and the Wazuh agent, so Windows telemetry flows into the SIEM.
+- Import the Kali attacker VM.
+- Load the custom detection rules and run the first attack simulation (the Linux `/etc/shadow` test can run against `linux-endpoint` now).
