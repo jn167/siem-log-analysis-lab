@@ -14,6 +14,7 @@ Evidence captured during the build, referenced from the [build log](../docs/buil
 - `08-wazuh-dashboard.png` - Wazuh dashboard overview after first login
 - `09-linux-ip-a.png` - linux-endpoint on the lab network (10.0.50.30)
 - `10-linux-agent-active.png` - linux-endpoint reporting as an active agent in Wazuh
+- `11-both-agents-active.png` - both endpoints (linux-endpoint and win-endpoint) active in Wazuh
 
 ## Still to capture (later phases)
 

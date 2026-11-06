@@ -93,6 +93,31 @@ The `WAZUH_MANAGER="10.0.50.10"` variable is what points the agent at the server
 
 ---
 
+## Phase 5: Windows endpoint (win-endpoint)
+
+Installed Windows 11 Enterprise (evaluation) on `win-endpoint`. VirtualBox's unattended install created the local user automatically, so Windows booted straight to the desktop with no Microsoft-account step. Set a static IP of `10.0.50.20` through the Windows network settings, and confirmed the box could reach the manager (`ping 10.0.50.10` replied).
+
+Installed the Wazuh agent from PowerShell (admin), pointing it at the manager:
+
+```
+msiexec.exe /i wazuh-agent-4.14.10-1.msi /qn WAZUH_MANAGER="10.0.50.10" WAZUH_AGENT_NAME="win-endpoint"
+```
+
+The agent registered as **agent 002** and shows **active**. Then made the host detection-ready:
+
+- **Audit policies** (so logons, account changes and group changes are logged): enabled Logon, User Account Management, and Security Group Management via `auditpol`.
+- **PowerShell Script Block Logging** enabled (Event ID 4104) so encoded commands are captured.
+- **Sysmon** installed with the SwiftOnSecurity config; it validated and is logging Event ID 1 (process creation).
+
+[![Both agents active in Wazuh](../screenshots/11-both-agents-active.png)](../screenshots/11-both-agents-active.png)
+*Both endpoints reporting: `linux-endpoint` (001, 10.0.50.30) and `win-endpoint` (002, 10.0.50.20), each active.*
+
+> 💡 The agent is active now, but Sysmon and PowerShell logs will not reach Wazuh until the shared `agent.conf` (which subscribes the agent to those event channels) is loaded on the server. That happens in the detection-rules phase, alongside `local_rules.xml`.
+
+> 💡 VirtualBox notes for this VM: host-to-guest clipboard needed a Guest Additions reinstall before it worked, and with a keyboard that has no right Ctrl (the default VirtualBox Host key), the full-screen menu is reached by moving the mouse to the screen edge to reveal the toolbar, or by rebinding the Host key in VirtualBox preferences.
+
+---
+
 ## Troubleshooting
 
 ### 1. VT-x disabled in BIOS (VM would not start)
@@ -191,6 +216,6 @@ With the ports free and the package gone, `sudo bash ./wazuh-install.sh -a -o` c
 
 ## Next up
 
-- Set up the Windows endpoint: install Windows 11 on `win-endpoint`, then Sysmon and the Wazuh agent, so Windows telemetry flows into the SIEM.
+- Load the detection rules on the server: copy `local_rules.xml` and the shared `agent.conf` (which subscribes the Windows agent to the Sysmon and PowerShell channels), then restart the manager.
 - Import the Kali attacker VM.
-- Load the custom detection rules and run the first attack simulation (the Linux `/etc/shadow` test can run against `linux-endpoint` now).
+- Run the attack simulations and confirm the custom rules fire, then write up the investigations.

@@ -33,10 +33,10 @@ This lab is in active development. The sections below describe the full design; 
 - [x] VM shells created and attached to the lab network: `wazuh-server`, `win-endpoint`, `linux-endpoint`
 - [x] `wazuh-server`: Ubuntu Server 24.04 installed, static IP 10.0.50.10, OpenSSH enabled
 - [x] `linux-endpoint`: Ubuntu Server 24.04 installed, static IP 10.0.50.30
-- [ ] `win-endpoint`: Windows 11 installed and given a static IP
+- [x] `win-endpoint`: Windows 11 Enterprise installed, static IP 10.0.50.20
 - [ ] Kali attacker VM imported
 - [x] Wazuh server deployed (manager, indexer, dashboard); dashboard reachable at `https://localhost:8443`
-- [ ] Windows agent + Sysmon reporting
+- [x] Windows agent active (002) + Sysmon and audit policies configured
 - [x] Linux agent reporting (`linux-endpoint`, agent 001, active)
 - [ ] Custom detection rules loaded and validated
 - [ ] Attack simulations executed and alerts confirmed

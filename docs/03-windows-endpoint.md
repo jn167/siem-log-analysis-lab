@@ -81,5 +81,5 @@ In VirtualBox: **Machine > Take Snapshot** and name it `clean-baseline`. You can
 
 ## Screenshot checklist
 
-- [ ] Agent showing Active in the dashboard
-- [ ] A Sysmon Event 1 for notepad.exe in Threat Hunting
+- [x] Agent showing Active in the dashboard (`screenshots/11-both-agents-active.png`)
+- [ ] A Sysmon Event 1 for notepad.exe in Threat Hunting (after `agent.conf` is loaded)
