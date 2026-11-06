@@ -170,6 +170,20 @@ Hydra worked through the list, failed on the first ~19 passwords, and cracked th
 
 ---
 
+## Phase 8: SOC overview dashboard
+
+Built a custom **SIEM Lab Overview** dashboard in Wazuh (Explore > Visualize for the panels, Explore > Dashboards to assemble), with four panels against the `wazuh-alerts-*` index:
+
+- **Top Triggered Rules** (data table, terms on `rule.description`)
+- **Alerts Over Time** (vertical bar, date histogram on `timestamp`, split by `agent.name`)
+- **MITRE Techniques** (data table, terms on `rule.mitre.technique`)
+- **Total Alerts** (metric, count)
+
+[![SIEM Lab Overview dashboard](../screenshots/16-soc-dashboard.png)](../screenshots/16-soc-dashboard.png)
+*The finished dashboard. The MITRE techniques panel reflects the simulations: Password Guessing, SSH, Valid Accounts, Ingress Tool Transfer, PowerShell, Brute Force, and more.*
+
+---
+
 ## Troubleshooting
 
 ### 1. VT-x disabled in BIOS (VM would not start)
@@ -268,6 +282,5 @@ With the ports free and the package gone, `sudo bash ./wazuh-install.sh -a -o` c
 
 ## Next up
 
-- Build the SOC overview dashboard in Wazuh (top rules, alerts over time, MITRE techniques).
 - Write up a few detections analyst-style (what fired, what happened, response, tuning).
 - Final README polish: "What I Learned," the MITRE ATT&CK framework view, and the progress checklist.

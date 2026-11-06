@@ -41,7 +41,8 @@ This lab is in active development. The sections below describe the full design; 
 - [x] Custom detection rules loaded on the server
 - [x] All five custom rules validated via the Windows and Linux attack simulations
 - [x] Kali imported and SSH brute-force simulation run (rules 5760/5763/5715)
-- [ ] Dashboard built and investigations written up
+- [x] SOC overview dashboard built (SIEM Lab Overview)
+- [ ] Investigations written up
 
 > 💡 The full step-by-step build guide lives in [`docs/`](docs/), one file per phase. A running [build log](docs/build-log.md) records what was actually done and the problems hit along the way (VT-x, LVM disk space, port conflicts). This README is the portfolio write-up; the docs are the how-to.
 
@@ -155,14 +156,15 @@ For each detection I write up a short investigation the way a SOC analyst would:
 
 ## 📊 SOC Dashboard
 
-A Wazuh dashboard planned to summarize the lab at a glance:
+A custom **SIEM Lab Overview** dashboard built in Wazuh to summarize the lab at a glance:
 
-- Top triggered rules by count
-- Alerts over time, split by host
-- Highest alert level (gauge)
-- MITRE ATT&CK techniques observed
+- **Top triggered rules** by count
+- **Alerts over time**, split by host (`wazuh-server`, `linux-endpoint`, `win-endpoint`)
+- **MITRE ATT&CK techniques** observed, ranked
+- **Total alerts** collected
 
-*Screenshot placeholder: SIEM Lab Overview dashboard (added once Phase 7 is complete).*
+[![SIEM Lab Overview dashboard](screenshots/16-soc-dashboard.png)](screenshots/16-soc-dashboard.png)
+*The SIEM Lab Overview dashboard. The MITRE techniques panel shows the detection spread, Password Guessing, SSH, Valid Accounts, Ingress Tool Transfer, PowerShell, Brute Force, and more, all exercised by the simulations.*
 
 ---
 

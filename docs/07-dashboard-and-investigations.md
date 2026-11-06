@@ -107,4 +107,4 @@ Back in `README.md`:
 
 - [ ] Saved `Lab detections` Threat Hunting view
 - [ ] MITRE ATT&CK framework view with techniques lit up
-- [ ] `SIEM Lab Overview` dashboard
+- [x] `SIEM Lab Overview` dashboard (`screenshots/16-soc-dashboard.png`)
