@@ -263,7 +263,21 @@ screenshots/  Evidence for each phase
 
 ## 💭 Reflections and Takeaways
 
-_Reflection to be added._
+Building this lab taught me what detection engineering actually means, which turned out to be very different from reading about it. Writing the rules myself and then watching them fire on real activity made the whole pipeline concrete in a way no article or video had. I could see exactly how a technique shows up in the raw logs, how a rule keys on the specific fields that matter, and how the finished alert surfaces for an analyst to act on. Setting my encoded-PowerShell rule to a higher level so it would win over the built-in rule, and then watching it trigger on a base64 command I ran, connected a lot of dots at once: the rule tree, the log source, the severity, and the MITRE technique all came together in a single alert I had designed.
+
+That hands-on angle changed how I think about detection in general. Before this I thought of detections as something that just exists inside a tool. Now I understand them as decisions someone makes: which log source to watch, which field to match, how confident to be, and what context separates a real threat from noise. Writing the tuning notes for each rule, where it could false-positive and what extra context would raise my confidence, was the part that felt most like the actual job.
+
+The hardest part, honestly, was not the detection work but getting all the machines stood up and talking to each other correctly. I ran into a steady stream of small issues, some costing ten minutes and some an hour or two. Virtualization was turned off in the BIOS, so nothing would boot at first. The Wazuh install failed because Ubuntu had only given the root filesystem half the disk, which I had to expand with LVM. A half-removed package then blocked the reinstall and I had to clear it out by hand. Later, my custom agent config silently failed to load because a multi-line paste got split and one command never ran, so the Windows logs I expected simply were not there.
+
+The thread running through all of those was the same: slow down and verify. Almost every setback came from assuming a command had worked when it had not, and the fix was always to go back, recheck the actual state, and confirm each step had landed before moving on. By the end I was checking service status, re-reading config files, and confirming things were really in place rather than trusting that they were. That habit of verifying state instead of assuming it is probably the most useful thing I took from the whole project, and it applies far beyond this lab.
+
+I also got a feel for the operational side of running an environment like this. Running all four VMs at once starved the host and stalled the SIEM server, which taught me to be deliberate about resources and only run what I actually need. Smaller things, like getting copy-paste working between host and guest or dealing with a keyboard that had no right Ctrl key, were reminders that a lot of real work is just making the tools cooperate.
+
+By the end I can honestly say I can deploy a SIEM from scratch, forward Windows and Linux telemetry into it, write custom detection rules mapped to MITRE ATT&CK, run safe attack simulations to test those detections, and investigate the alerts they produce. I also built a small dashboard and wrote up a few detections the way an analyst would, which pulled the whole thing together from raw log to finished investigation.
+
+If I kept building on this, there is a lot more I would do. Wazuh ships a huge ruleset I barely scratched, so I would add and study many more rules, and spend real time tuning to cut down false positives, since that is clearly where much of the day-to-day effort goes. I would also like to automate the VM builds so the entire environment can be stood up repeatably instead of by hand, and eventually add pieces like centralized alerting and a small Active Directory setup to make it more realistic.
+
+I want to work in cybersecurity, and this lab gave me real, hands-on insight into the kind of defensive, detection-focused work that first drew me to the field. I have not locked in a specific role yet, but going through all of this, including the parts that broke, made me more sure this is the direction I want to keep pursuing.
 
 ---
 

@@ -290,7 +290,6 @@ With the ports free and the package gone, `sudo bash ./wazuh-install.sh -a -o` c
 
 ---
 
-## Next up
+## Status
 
-- Add a "What I Learned" reflection to the README (personal takeaways).
-- Final pass on the README once the lab is closed out.
+Lab complete. The environment is built, both endpoints report in, all five custom rules plus the built-in SSH brute-force chain are validated, the SOC dashboard is built, the detections are written up, and the README includes the reflection. Future improvements (more rules, false-positive tuning, automated VM builds, centralized alerting, an AD component) are noted in the README.
