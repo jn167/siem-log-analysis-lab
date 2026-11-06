@@ -118,6 +118,32 @@ The agent registered as **agent 002** and shows **active**. Then made the host d
 
 ---
 
+## Phase 6: Detection rules loaded, first detection validated
+
+Copied `local_rules.xml` and the shared `agent.conf` from the repo to the server with `scp` (via the SSH port forward), placed them, and restarted the manager:
+
+```
+scp -P 2210 local_rules.xml agent.conf billnye@127.0.0.1:/tmp/     # from the host
+sudo cp /tmp/local_rules.xml /var/ossec/etc/rules/local_rules.xml  # on the server
+sudo cp /tmp/agent.conf /var/ossec/etc/shared/default/agent.conf
+sudo chown wazuh:wazuh /var/ossec/etc/rules/local_rules.xml /var/ossec/etc/shared/default/agent.conf
+sudo systemctl restart wazuh-manager
+```
+
+The manager came back up `active (running)`, which confirms `local_rules.xml` parsed with no errors. The Windows agent then pulled the shared `agent.conf`, subscribing it to the Sysmon and PowerShell event channels.
+
+**First detection, validated end to end.** Ran a harmless encoded PowerShell command on `win-endpoint` (the encoded text just runs `whoami; hostname`), and custom rule **100100** fired at level 13, with the MITRE mapping auto-populated (`T1059.001`, tactic Execution).
+
+[![Rule 100100 in Threat Hunting](../screenshots/12-detection-encoded-ps-table.png)](../screenshots/12-detection-encoded-ps-table.png)
+*Threat Hunting, filtered to `rule.id:100100`: one hit from `win-endpoint`, "PowerShell launched with an encoded command," level 13.*
+
+[![Alert detail with MITRE fields](../screenshots/13-detection-encoded-ps-detail.png)](../screenshots/13-detection-encoded-ps-detail.png)
+*The full alert document: the Sysmon process-creation event and the auto-populated `rule.mitre.*` fields.*
+
+> 💡 On the first attempt the Windows agent pulled an empty `agent.conf`, so no Sysmon logs flowed. The cause was a multi-line paste that split the server-side `cp` commands, so the custom `agent.conf` never replaced the default. Re-running the copies one line at a time (and confirming the file with `head`) fixed it. Lesson: paste multi-line command blocks one line at a time over SSH, and verify a config is actually in place before assuming it loaded.
+
+---
+
 ## Troubleshooting
 
 ### 1. VT-x disabled in BIOS (VM would not start)
@@ -216,6 +242,6 @@ With the ports free and the package gone, `sudo bash ./wazuh-install.sh -a -o` c
 
 ## Next up
 
-- Load the detection rules on the server: copy `local_rules.xml` and the shared `agent.conf` (which subscribes the Windows agent to the Sysmon and PowerShell channels), then restart the manager.
-- Import the Kali attacker VM.
-- Run the attack simulations and confirm the custom rules fire, then write up the investigations.
+- Run the rest of the attack simulations (web download, scheduled task, local-admin change on Windows; `/etc/shadow` read on Linux) and confirm rules 100101, 100102, 100110, and 100200 fire.
+- Import the Kali attacker VM and run the SSH brute-force simulation.
+- Build the dashboard and write up the investigations.

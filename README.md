@@ -38,8 +38,8 @@ This lab is in active development. The sections below describe the full design; 
 - [x] Wazuh server deployed (manager, indexer, dashboard); dashboard reachable at `https://localhost:8443`
 - [x] Windows agent active (002) + Sysmon and audit policies configured
 - [x] Linux agent reporting (`linux-endpoint`, agent 001, active)
-- [ ] Custom detection rules loaded and validated
-- [ ] Attack simulations executed and alerts confirmed
+- [x] Custom detection rules loaded on the server; rule 100100 validated end to end
+- [ ] Remaining rules confirmed via the attack simulations
 - [ ] Dashboard built and investigations written up
 
 > 💡 The full step-by-step build guide lives in [`docs/`](docs/), one file per phase. A running [build log](docs/build-log.md) records what was actually done and the problems hit along the way (VT-x, LVM disk space, port conflicts). This README is the portfolio write-up; the docs are the how-to.
@@ -94,7 +94,8 @@ Five custom rules sit on top of Wazuh's built-in ruleset, each mapped to a MITRE
 
 > 📄 Rule logic was validated against the Wazuh 4.14 ruleset source. Rule #1 is deliberately set to level 13 so it is evaluated ahead of the built-in encoded-PowerShell rule (level 12) and wins as the surfaced alert.
 
-*Screenshot placeholder: Wazuh Threat Hunting view with the five custom rules firing (added once Phase 6 is complete).*
+[![Custom rule 100100 firing in Threat Hunting](screenshots/12-detection-encoded-ps-table.png)](screenshots/12-detection-encoded-ps-table.png)
+*First custom detection validated: rule 100100 (level 13) firing on `win-endpoint` for an encoded PowerShell command. The remaining rules are confirmed as the attack simulations are run.*
 
 ---
 
@@ -104,7 +105,8 @@ Five custom rules sit on top of Wazuh's built-in ruleset, each mapped to a MITRE
 
 Attackers base64-encode PowerShell commands to hide intent from casual log review. The rule keys on `powershell.exe` with an `-EncodedCommand` argument (and its abbreviations) in the Sysmon process-creation event, while deliberately not matching benign `-ExecutionPolicy`. Triage means decoding the command and checking the parent process.
 
-*Screenshot placeholder: decoded encoded-command alert (added once validated).*
+[![Encoded PowerShell alert detail with MITRE mapping](screenshots/13-detection-encoded-ps-detail.png)](screenshots/13-detection-encoded-ps-detail.png)
+*The alert detail: the Sysmon process-creation event, `rule.groups: lab, windows, sysmon`, and the auto-populated MITRE mapping (`T1059.001`, tactic Execution, technique PowerShell).*
 
 ### 2. PowerShell Web Download `T1105`
 
