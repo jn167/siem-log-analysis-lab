@@ -191,6 +191,12 @@ A custom **SIEM Lab Overview** dashboard built in Wazuh to summarize the lab at 
 
 ---
 
+## 🧠 What I Learned
+
+_Reflection to be added._
+
+---
+
 ## 🤖 Using Claude as a Tool
 
 I used Claude (Anthropic) as an assistant to scaffold this lab: drafting the detection rules, the simulation scripts, and this documentation, and checking the rule logic against the Wazuh ruleset. I am building, running, and validating every component myself, and no detection is marked working here until I have confirmed it fire in my own environment. Treating AI as a force multiplier while verifying its output is part of how I work.
