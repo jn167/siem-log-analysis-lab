@@ -182,6 +182,16 @@ Built a custom **SIEM Lab Overview** dashboard in Wazuh (Explore > Visualize for
 [![SIEM Lab Overview dashboard](../screenshots/16-soc-dashboard.png)](../screenshots/16-soc-dashboard.png)
 *The finished dashboard. The MITRE techniques panel reflects the simulations: Password Guessing, SSH, Valid Accounts, Ingress Tool Transfer, PowerShell, Brute Force, and more.*
 
+Wazuh also ships built-in MITRE ATT&CK views (a framework matrix and a charts dashboard) that map every alert to a technique, corroborating the lab's coverage with no extra build.
+
+[![MITRE ATT&CK framework](../screenshots/18-mitre-framework.png)](../screenshots/18-mitre-framework.png)
+*The ATT&CK framework view, techniques lit up by the simulations.*
+
+A sample of the underlying telemetry: a single Sysmon process-creation event carries the full command line, file hashes, parent process, and user, the raw data the detection rules match on.
+
+[![Sysmon event detail](../screenshots/20-sysmon-event-1.png)](../screenshots/20-sysmon-event-1.png)
+*One Sysmon process-creation event from `win-endpoint`, with command line, hashes, and parent-process fields.*
+
 ---
 
 ## Troubleshooting

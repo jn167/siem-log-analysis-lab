@@ -80,6 +80,9 @@ flowchart LR
 
 **Log sources:** Windows Security (logon and account events), Sysmon Operational (process creation), PowerShell Operational (script block logging), and Linux `auth.log` (SSH and sudo).
 
+[![All four lab VMs in VirtualBox](screenshots/17-all-vms.png)](screenshots/17-all-vms.png)
+*The four lab VMs in VirtualBox, all attached to the isolated `SIEMLab` NAT network.*
+
 ---
 
 ## 🎯 What This Lab Detects
@@ -98,6 +101,14 @@ Five custom rules sit on top of Wazuh's built-in ruleset, each mapped to a MITRE
 
 [![Custom rules firing in Threat Hunting](screenshots/14-all-custom-rules.png)](screenshots/14-all-custom-rules.png)
 *All five custom rules validated end to end against the attack simulations. Shown here: web download (100101), scheduled task (100102), local-admin change (100110), and the Linux `/etc/shadow` read (100200). The encoded-PowerShell rule (100100) is in the detections section below.*
+
+Wazuh's MITRE ATT&CK module maps every alert to the matrix, showing the breadth of adversary behavior the lab exercises:
+
+[![MITRE ATT&CK framework coverage](screenshots/18-mitre-framework.png)](screenshots/18-mitre-framework.png)
+*The ATT&CK framework view: techniques lit up by the simulations, from Password Guessing (T1110.001) and SSH (T1021.004) to PowerShell (T1059.001), Ingress Tool Transfer (T1105), Scheduled Task (T1053.005), and `/etc/shadow` access (T1003.008).*
+
+[![MITRE ATT&CK dashboard](screenshots/19-mitre-dashboard.png)](screenshots/19-mitre-dashboard.png)
+*The MITRE dashboard: tactics and techniques broken down by agent, so you can see which host generated which adversary behavior.*
 
 ---
 

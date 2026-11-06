@@ -106,5 +106,5 @@ Back in `README.md`:
 ## Screenshot checklist
 
 - [ ] Saved `Lab detections` Threat Hunting view
-- [ ] MITRE ATT&CK framework view with techniques lit up
+- [x] MITRE ATT&CK framework view with techniques lit up (`screenshots/18-mitre-framework.png`, `screenshots/19-mitre-dashboard.png`)
 - [x] `SIEM Lab Overview` dashboard (`screenshots/16-soc-dashboard.png`)

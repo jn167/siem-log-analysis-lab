@@ -20,6 +20,10 @@ Evidence captured during the build, referenced from the [build log](../docs/buil
 - `14-all-custom-rules.png` - rules 100101/100102/100110/100200 firing from the attack simulations
 - `15-ssh-bruteforce.png` - SSH brute force chain: failed logins, brute-force alert (5763), and success (5715)
 - `16-soc-dashboard.png` - the custom SIEM Lab Overview dashboard (top rules, alerts over time, MITRE techniques, total)
+- `17-all-vms.png` - all four lab VMs in VirtualBox Manager
+- `18-mitre-framework.png` - Wazuh MITRE ATT&CK framework view with techniques lit up
+- `19-mitre-dashboard.png` - Wazuh MITRE ATT&CK dashboard (tactics/techniques by agent)
+- `20-sysmon-event-1.png`, `21-sysmon-event-2.png` - a Sysmon process-creation event's full detail
 
 ## Still to capture (later phases)
 
