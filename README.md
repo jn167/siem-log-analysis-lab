@@ -40,7 +40,7 @@ This lab is in active development. The sections below describe the full design; 
 - [x] Linux agent reporting (`linux-endpoint`, agent 001, active)
 - [x] Custom detection rules loaded on the server
 - [x] All five custom rules validated via the Windows and Linux attack simulations
-- [ ] Kali imported and SSH brute-force simulation run
+- [x] Kali imported and SSH brute-force simulation run (rules 5760/5763/5715)
 - [ ] Dashboard built and investigations written up
 
 > 💡 The full step-by-step build guide lives in [`docs/`](docs/), one file per phase. A running [build log](docs/build-log.md) records what was actually done and the problems hit along the way (VT-x, LVM disk space, port conflicts). This README is the portfolio write-up; the docs are the how-to.
@@ -139,6 +139,9 @@ All simulations run against my own VMs on the isolated network, using harmless s
 **Linux:** `SSH brute force → Credential access (/etc/shadow via sudo) → Backdoor account → sudo group`
 
 > 💡 The "malicious" payloads are benign by design: the encoded command decodes to `whoami; hostname`, the scheduled task only echoes text, and the brute-force wordlist and target account exist only inside the lab. Each script has a cleanup switch, and VMs are snapshotted to a `clean-baseline` first. Scripts: [`scripts/`](scripts/).
+
+[![SSH brute force detected in Threat Hunting](screenshots/15-ssh-bruteforce.png)](screenshots/15-ssh-bruteforce.png)
+*The SSH brute force from Kali against `linux-endpoint`: a burst of failed logins (rule 5760), the brute-force correlation alert (rule 5763, level 10), and the successful login with the cracked credentials (rule 5715). The full attack chain a SOC analyst would investigate.*
 
 ---
 

@@ -82,4 +82,4 @@ After all three runs, **Threat Hunting** filtered to the lab rules should show a
 
 - [x] Windows: custom rules 100100, 100101, 100102, 100110 in the alert list (`screenshots/12-detection-encoded-ps-table.png`, `screenshots/14-all-custom-rules.png`)
 - [x] Linux: custom rule 100200 in the alert list (`screenshots/14-all-custom-rules.png`)
-- [ ] SSH: the 5763 brute-force alert followed by the 5715 success (needs Kali)
+- [x] SSH: the 5763 brute-force alert followed by the 5715 success (`screenshots/15-ssh-bruteforce.png`)

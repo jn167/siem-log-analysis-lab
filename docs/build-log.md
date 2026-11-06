@@ -149,6 +149,27 @@ The manager came back up `active (running)`, which confirms `local_rules.xml` pa
 
 ---
 
+## Phase 7: Kali attacker and SSH brute force
+
+Imported the prebuilt Kali VM (VirtualBox appliance via **Machine > Add**), attached it to the SIEMLab network, and gave it the static IP `10.0.50.40`. Created a deliberately weak target account `labvictim` on `linux-endpoint`, then ran an SSH brute force from Kali with Hydra, using the lab wordlist pulled from this repo:
+
+```
+hydra -l labvictim -P ~/lab-passwords.txt -t 4 -f ssh://10.0.50.30
+```
+
+Hydra worked through the list, failed on the first ~19 passwords, and cracked the account on `Summer2026!` (the last entry). Logging in with the cracked credentials then produced the success event. Wazuh's built-in rules captured the whole chain:
+
+- rule 5760 (level 5) — repeated SSH authentication failures
+- rule 5763 (level 10) — SSH brute force (fires after 8 failures in 120s)
+- rule 5715 (level 3) — successful SSH login
+
+[![SSH brute force chain in Threat Hunting](../screenshots/15-ssh-bruteforce.png)](../screenshots/15-ssh-bruteforce.png)
+*61 events from `linux-endpoint`: the failed-login burst (5760), the brute-force correlation alert (5763), and the successful login with the cracked credentials (5715).*
+
+> 💡 Two gotchas worth noting: (1) the first Hydra run found nothing because the target account's password was never actually set, the `chpasswd` line had been dropped from a split multi-line paste; re-running it alone fixed it. (2) Hydra verifies a password but often resets the connection before sshd logs "Accepted", so rule 5715 did not fire from Hydra itself. A normal manual login with the cracked credentials (exactly what an attacker does next) generated it, which also makes the attack story more realistic.
+
+---
+
 ## Troubleshooting
 
 ### 1. VT-x disabled in BIOS (VM would not start)
@@ -247,6 +268,6 @@ With the ports free and the package gone, `sudo bash ./wazuh-install.sh -a -o` c
 
 ## Next up
 
-- Run the rest of the attack simulations (web download, scheduled task, local-admin change on Windows; `/etc/shadow` read on Linux) and confirm rules 100101, 100102, 100110, and 100200 fire.
-- Import the Kali attacker VM and run the SSH brute-force simulation.
-- Build the dashboard and write up the investigations.
+- Build the SOC overview dashboard in Wazuh (top rules, alerts over time, MITRE techniques).
+- Write up a few detections analyst-style (what fired, what happened, response, tuning).
+- Final README polish: "What I Learned," the MITRE ATT&CK framework view, and the progress checklist.
