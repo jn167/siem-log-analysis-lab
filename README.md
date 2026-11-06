@@ -42,7 +42,7 @@ This lab is in active development. The sections below describe the full design; 
 - [x] All five custom rules validated via the Windows and Linux attack simulations
 - [x] Kali imported and SSH brute-force simulation run (rules 5760/5763/5715)
 - [x] SOC overview dashboard built (SIEM Lab Overview)
-- [ ] Investigations written up
+- [x] Investigations written up (3 detections, analyst-style)
 
 > 💡 The full step-by-step build guide lives in [`docs/`](docs/), one file per phase. A running [build log](docs/build-log.md) records what was actually done and the problems hit along the way (VT-x, LVM disk space, port conflicts). This README is the portfolio write-up; the docs are the how-to.
 
@@ -159,9 +159,15 @@ All simulations run against my own VMs on the isolated network, using harmless s
 
 ## 🧪 Analyst Triage & Investigations
 
-For each detection I write up a short investigation the way a SOC analyst would: what fired, what actually happened (reconstructed from surrounding events), whether it is malicious, the response, and how to tune the rule. The template and the first worked example are in [`docs/07-dashboard-and-investigations.md`](docs/07-dashboard-and-investigations.md).
+For each detection I write up a short investigation the way a SOC analyst would: what fired, what actually happened, whether it is malicious, the response, and how to tune the rule. Full write-ups are in [`docs/investigations.md`](docs/investigations.md).
 
-*Investigation write-ups are added here as each attack is run and confirmed.*
+| # | Investigation | ATT&CK | Host | Verdict |
+|---|---|---|---|---|
+| 1 | Encoded PowerShell command (rule 100100) | T1059.001 | win-endpoint | Malicious technique; benign payload in this run |
+| 2 | SSH brute force into a successful login (5763 → 5715) | T1110.001 → T1078 | linux-endpoint | Malicious; account treated as compromised |
+| 3 | Account added to local Administrators (rule 100110) | T1098 | win-endpoint | Malicious; unauthorized privilege escalation |
+
+Each write-up ends with a tuning note (false-positive sources, where to raise severity, and what context makes the alert higher fidelity). See [`docs/investigations.md`](docs/investigations.md) for the full detail.
 
 ---
 

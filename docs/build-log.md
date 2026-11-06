@@ -292,5 +292,5 @@ With the ports free and the package gone, `sudo bash ./wazuh-install.sh -a -o` c
 
 ## Next up
 
-- Write up a few detections analyst-style (what fired, what happened, response, tuning).
-- Final README polish: "What I Learned," the MITRE ATT&CK framework view, and the progress checklist.
+- Add a "What I Learned" reflection to the README (personal takeaways).
+- Final pass on the README once the lab is closed out.
