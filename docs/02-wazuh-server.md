@@ -82,5 +82,5 @@ Note: `local_rules.xml` replaces the example file that ships with Wazuh. That fi
 
 ## Screenshot checklist
 
-- [ ] Installer summary (blur the password)
-- [ ] Wazuh dashboard home page after login
+- [x] Installer summary (`screenshots/06-install-summary.png`)
+- [x] Wazuh dashboard home page after login (`screenshots/08-wazuh-dashboard.png`)

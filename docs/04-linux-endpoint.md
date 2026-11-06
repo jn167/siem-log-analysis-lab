@@ -77,5 +77,6 @@ Name it `clean-baseline`.
 
 ## Screenshot checklist
 
-- [ ] Both agents Active in Agents management
+- [x] `linux-endpoint` Active in Agents management (`screenshots/10-linux-agent-active.png`)
+- [ ] `win-endpoint` Active in Agents management (after Phase 3)
 - [ ] The failed SSH login alert

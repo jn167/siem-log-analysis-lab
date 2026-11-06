@@ -103,4 +103,4 @@ Note: Windows blocks ping by default, so pings **to** 10.0.50.20 failing is norm
 ## Screenshot checklist
 
 - [ ] VirtualBox Manager showing all four VMs
-- [ ] `ip a` on wazuh-server showing 10.0.50.10
+- [x] `ip a` on wazuh-server showing 10.0.50.10 (`screenshots/04-ip-a.png`)
