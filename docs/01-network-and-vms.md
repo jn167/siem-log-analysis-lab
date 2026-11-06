@@ -2,6 +2,25 @@
 
 Goal: an isolated VirtualBox network with four VMs on static IPs.
 
+## Tip: enable host-to-guest copy/paste first
+
+You will paste a lot of commands into these VMs, so set up shared clipboard before anything else. It saves a lot of retyping.
+
+For each VM, once it is installed and running:
+
+1. **Install Guest Additions in the guest** (required for clipboard sharing):
+   - **Windows guest:** VirtualBox menu **Devices > Insert Guest Additions CD image**, then in the VM run `VBoxWindowsAdditions-amd64.exe` from the CD drive and reboot. (VirtualBox's unattended Windows install often installs this for you.)
+   - **Ubuntu guest:** `sudo apt install -y virtualbox-guest-utils`, then reboot. (Or use the inserted Guest Additions CD.)
+2. **Turn the clipboard on:** VirtualBox menu **Devices > Shared Clipboard > Bidirectional** (optionally **Devices > Drag and Drop > Bidirectional** too).
+3. **Paste with `Ctrl+V`.** In Windows Terminal, right-click may open a menu instead of pasting, so use `Ctrl+V`.
+
+Two gotchas worth knowing:
+
+- If paste still does not work after enabling Bidirectional, reinstall Guest Additions (above) and reboot; the clipboard service sometimes needs it.
+- VirtualBox's default **Host key** is **Right Ctrl**. If your keyboard has no right Ctrl (for example a compact or custom/QMK board), either rebind it under **File > Preferences > Input > Virtual Machine** in VirtualBox Manager, or reach a full-screen VM's menu by moving the mouse to the screen edge to reveal the toolbar.
+
+Alternatively, once a VM has OpenSSH and a host port forward (set up below), you can SSH into it from your host terminal, where copy/paste works natively.
+
 ## 1. Download the ISOs
 
 | VM | Download |
