@@ -1,13 +1,14 @@
+<div align="center">
+
 # 🛡️ SIEM & Log Analysis Home Lab
 
-### Wazuh-based threat detection across Windows and Linux, mapped to MITRE ATT&CK
+**A hands-on Wazuh SIEM that ingests Windows and Linux telemetry, detects attacker techniques with custom rules, and traces each one back through the logs, the way a SOC analyst works.**
 
-![Status](https://img.shields.io/badge/status-building-yellow)
-![Platform](https://img.shields.io/badge/platform-VirtualBox%207.1-183A61)
+![Status](https://img.shields.io/badge/status-complete-brightgreen)
 ![SIEM](https://img.shields.io/badge/SIEM-Wazuh%204.14-005792)
 ![MITRE](https://img.shields.io/badge/MITRE%20ATT%26CK-mapped-red)
-![Custom rules](https://img.shields.io/badge/custom%20rules-5%20authored-informational)
-![Hosts](https://img.shields.io/badge/hosts-4-lightgrey)
+![Custom rules](https://img.shields.io/badge/custom%20rules-5%20validated-success)
+![VMs](https://img.shields.io/badge/VMs-4-lightgrey)
 
 ![Wazuh](https://img.shields.io/badge/Wazuh-005792?logo=wazuh&logoColor=white)
 ![Ubuntu](https://img.shields.io/badge/Ubuntu%2024.04-E95420?logo=ubuntu&logoColor=white)
@@ -15,45 +16,37 @@
 ![Kali](https://img.shields.io/badge/Kali%20Linux-557C94?logo=kalilinux&logoColor=white)
 ![Sysmon](https://img.shields.io/badge/Sysmon-Sysinternals-00A4EF)
 
-**[Build Status](#-build-status) · [Architecture](#️-lab-architecture) · [Detections](#-what-this-lab-detects) · [In Depth](#-detections-in-depth) · [Attack Chain](#️-attack-chain-simulated) · [Investigations](#-analyst-triage--investigations) · [Dashboard](#-soc-dashboard) · [Lab Series](#-other-labs-in-this-series)**
+[Project Status](#project-status) • [Environment](#the-lab-environment) • [How Detection Works](#how-detection-works-in-wazuh) • [Coverage](#detection-coverage) • [Rules](#rule-by-rule-breakdown) • [Simulations](#adversary-simulations) • [Investigations](#investigating-the-alerts) • [Dashboards](#visibility-and-dashboards) • [Challenges](#challenges-and-how-i-solved-them) • [Skills](#skills-demonstrated)
+
+</div>
 
 ---
 
-This is the first lab in my cybersecurity home lab series. I deploy the [Wazuh](https://wazuh.com/) SIEM on an isolated virtual network, forward Windows and Linux telemetry into it, run safe attacker simulations against my own VMs, and write custom detection rules to catch them. The goal is to practice the day-to-day work of a SOC analyst: collecting logs, engineering detections, and investigating alerts. It is being built in phases, and this write-up is updated as each phase is completed.
+I built this lab to learn detection engineering by doing it rather than reading about it. I stood up the [Wazuh](https://wazuh.com/) SIEM on an isolated virtual network, pointed Windows and Linux agents at it, ran safe attacker simulations against my own machines, and wrote custom rules to catch each technique. Every detection here was triggered on purpose and confirmed in my own environment, and each one is written up the way an analyst would hand it off: what fired, what actually happened, and what to do about it.
+
+This README is the walkthrough. The [`docs/`](docs/) folder holds the phase-by-phase build guide, and [`docs/build-log.md`](docs/build-log.md) is the honest running log of what I actually did, including everything that broke.
 
 ---
 
-## 🚧 Build Status
+## Project Status
 
-This lab is in active development. The sections below describe the full design; the checklist shows what is actually stood up so far.
+Every phase is complete: the environment is built, both endpoints report in, all five custom rules are validated against live attacks, the SSH brute force is detected end to end, the dashboard is built, and the detections are written up.
 
-- [x] Lab designed: architecture, detection rules authored, attack simulations scripted
-- [x] Host prep: VirtualBox 7.1 installed, VT-x enabled in BIOS, OS images downloaded (Ubuntu 24.04.5, Windows 11 Enterprise eval, Kali)
-- [x] Lab network created: `SIEMLab` NAT network (10.0.50.0/24) with host port forwards
-- [x] VM shells created and attached to the lab network: `wazuh-server`, `win-endpoint`, `linux-endpoint`
-- [x] `wazuh-server`: Ubuntu Server 24.04 installed, static IP 10.0.50.10, OpenSSH enabled
-- [x] `linux-endpoint`: Ubuntu Server 24.04 installed, static IP 10.0.50.30
-- [x] `win-endpoint`: Windows 11 Enterprise installed, static IP 10.0.50.20
-- [ ] Kali attacker VM imported
-- [x] Wazuh server deployed (manager, indexer, dashboard); dashboard reachable at `https://localhost:8443`
-- [x] Windows agent active (002) + Sysmon and audit policies configured
-- [x] Linux agent reporting (`linux-endpoint`, agent 001, active)
-- [x] Custom detection rules loaded on the server
-- [x] All five custom rules validated via the Windows and Linux attack simulations
-- [x] Kali imported and SSH brute-force simulation run (rules 5760/5763/5715)
-- [x] SOC overview dashboard built (SIEM Lab Overview)
-- [x] Investigations written up (3 detections, analyst-style)
-
-> 💡 The full step-by-step build guide lives in [`docs/`](docs/), one file per phase. A running [build log](docs/build-log.md) records what was actually done and the problems hit along the way (VT-x, LVM disk space, port conflicts). This README is the portfolio write-up; the docs are the how-to.
-
-[![Wazuh dashboard overview](screenshots/08-wazuh-dashboard.png)](screenshots/08-wazuh-dashboard.png)
-*The Wazuh SIEM running on the lab server. Endpoints and detections come next; agent telemetry will populate the severity counts.*
+- [x] Isolated lab network (`SIEMLab`, 10.0.50.0/24) and four VMs built in VirtualBox
+- [x] Wazuh server deployed (manager, indexer, dashboard) and reachable from the host
+- [x] `win-endpoint` reporting with Sysmon, audit policies, and PowerShell logging
+- [x] `linux-endpoint` reporting with the Wazuh agent
+- [x] Five custom detection rules authored, loaded, and mapped to MITRE ATT&CK
+- [x] All five rules validated by Windows and Linux attack simulations
+- [x] Kali attacker imported; SSH brute force detected (rules 5760 / 5763 / 5715)
+- [x] Custom SOC overview dashboard built
+- [x] Three detections written up analyst-style with tuning notes
 
 ---
 
-## 🗺️ Lab Architecture
+## The Lab Environment
 
-Four VMs on a VirtualBox NAT network. The VMs can reach each other and the internet, but nothing on my home network can reach them.
+Four virtual machines on a VirtualBox NAT network. The VMs can reach each other and the internet, but nothing on my home network can reach them, so attacks stay fully contained.
 
 ```mermaid
 flowchart LR
@@ -78,88 +71,111 @@ flowchart LR
 | `linux-endpoint` | Monitored Linux host | Ubuntu Server 24.04 LTS | 1 | 2 GB | 25 GB | 10.0.50.30 |
 | `kali-attacker` | Attacker | Kali Linux | 2 | 4 GB | 40 GB | 10.0.50.40 |
 
-**Log sources:** Windows Security (logon and account events), Sysmon Operational (process creation), PowerShell Operational (script block logging), and Linux `auth.log` (SSH and sudo).
+**Host access (NAT port forwards):** the isolated network is reachable from the host only through a few mapped ports.
 
-[![All four lab VMs in VirtualBox](screenshots/17-all-vms.png)](screenshots/17-all-vms.png)
-*The four lab VMs in VirtualBox, all attached to the isolated `SIEMLab` NAT network.*
+| Host | Forwards to | Purpose |
+|---|---|---|
+| `127.0.0.1:8443` | `10.0.50.10:443` | Wazuh dashboard |
+| `127.0.0.1:2210` | `10.0.50.10:22` | SSH to the Wazuh server |
+| `127.0.0.1:2230` | `10.0.50.30:22` | SSH to the Linux endpoint |
 
----
+**Log sources:** Windows Security (logon and account events), Sysmon Operational (process creation), PowerShell Operational (script-block logging), and Linux `auth.log` (SSH and sudo).
 
-## 🎯 What This Lab Detects
-
-Five custom rules sit on top of Wazuh's built-in ruleset, each mapped to a MITRE ATT&CK technique. They are authored in [`configs/local_rules.xml`](configs/local_rules.xml) and validated once the agents are live (see Build Status).
-
-| # | Detection | Tactic | Technique | Log source | Severity |
-|---|---|---|---|---|---|
-| 1 | PowerShell run with an encoded command | Execution | [T1059.001](https://attack.mitre.org/techniques/T1059/001/) | Sysmon EID 1 | High (13) |
-| 2 | PowerShell downloading from the web | Command & Control | [T1105](https://attack.mitre.org/techniques/T1105/) | Sysmon EID 1 | Medium (10) |
-| 3 | Scheduled task created via schtasks | Persistence | [T1053.005](https://attack.mitre.org/techniques/T1053/005/) | Sysmon EID 1 | Medium (10) |
-| 4 | Account added to local Administrators | Persistence | [T1098](https://attack.mitre.org/techniques/T1098/) | Windows Security 4732 | High (12) |
-| 5 | `/etc/shadow` read with sudo | Credential Access | [T1003.008](https://attack.mitre.org/techniques/T1003/008/) | Linux auth.log | High (12) |
-
-> 📄 Rule logic was validated against the Wazuh 4.14 ruleset source. Rule #1 is deliberately set to level 13 so it is evaluated ahead of the built-in encoded-PowerShell rule (level 12) and wins as the surfaced alert.
-
-[![Custom rules firing in Threat Hunting](screenshots/14-all-custom-rules.png)](screenshots/14-all-custom-rules.png)
-*All five custom rules validated end to end against the attack simulations. Shown here: web download (100101), scheduled task (100102), local-admin change (100110), and the Linux `/etc/shadow` read (100200). The encoded-PowerShell rule (100100) is in the detections section below.*
-
-Wazuh's MITRE ATT&CK module maps every alert to the matrix, showing the breadth of adversary behavior the lab exercises:
-
-[![MITRE ATT&CK framework coverage](screenshots/18-mitre-framework.png)](screenshots/18-mitre-framework.png)
-*The ATT&CK framework view: techniques lit up by the simulations, from Password Guessing (T1110.001) and SSH (T1021.004) to PowerShell (T1059.001), Ingress Tool Transfer (T1105), Scheduled Task (T1053.005), and `/etc/shadow` access (T1003.008).*
-
-[![MITRE ATT&CK dashboard](screenshots/19-mitre-dashboard.png)](screenshots/19-mitre-dashboard.png)
-*The MITRE dashboard: tactics and techniques broken down by agent, so you can see which host generated which adversary behavior.*
+<div align="center">
+  <a href="screenshots/17-all-vms.png"><img src="screenshots/17-all-vms.png" width="760" alt="All four lab VMs in VirtualBox"></a><br>
+  <em>The four lab VMs in VirtualBox, all attached to the isolated SIEMLab network.</em>
+</div>
 
 ---
 
-## 🔬 Detections In Depth
+## How Detection Works in Wazuh
 
-### 1. Encoded PowerShell `T1059.001`
+A quick mental model, since it is what the rest of the lab builds on.
 
-Attackers base64-encode PowerShell commands to hide intent from casual log review. The rule keys on `powershell.exe` with an `-EncodedCommand` argument (and its abbreviations) in the Sysmon process-creation event, while deliberately not matching benign `-ExecutionPolicy`. Triage means decoding the command and checking the parent process.
+- **Events flow through a rule tree.** Decoders first tag a raw log (for example, a Sysmon process-creation event or an sshd authentication line). Custom rules then attach to those tags with `if_group` or `if_sid`, so a rule only runs against events it can possibly match. That keeps custom rules cheap and precise instead of scanning everything.
+- **Rule level sets severity and tie-breaking.** When several rules could match one event, Wazuh evaluates them from highest level to lowest. I used this deliberately: my encoded-PowerShell rule is set to level 13 so it is checked before the built-in level-12 rule and becomes the alert that surfaces.
+- **MITRE mapping is automatic.** Adding a `<mitre>` block to a rule makes Wazuh populate `rule.mitre.id`, `rule.mitre.tactic`, and `rule.mitre.technique` from its ATT&CK database, so every alert is tagged with the technique it represents.
 
-[![Rule 100100 firing for an encoded command](screenshots/12-detection-encoded-ps-table.png)](screenshots/12-detection-encoded-ps-table.png)
-*Rule 100100 (level 13) firing on `win-endpoint` for an encoded PowerShell command.*
+The rules match on real telemetry. A single Sysmon process-creation event, for example, carries the full command line, file hashes, the parent process, and the user, which is exactly the context an analyst needs.
 
-[![Encoded PowerShell alert detail with MITRE mapping](screenshots/13-detection-encoded-ps-detail.png)](screenshots/13-detection-encoded-ps-detail.png)
-*The alert detail: the Sysmon process-creation event, `rule.groups: lab, windows, sysmon`, and the auto-populated MITRE mapping (`T1059.001`, tactic Execution, technique PowerShell).*
-
-### 2. PowerShell Web Download `T1105`
-
-Catches PowerShell pulling a remote file via `Invoke-WebRequest`, `DownloadString`, `DownloadFile`, or `Net.WebClient`. Often the first stage of a payload drop. Correlating this with detection #1 (encoded command) strengthens the signal.
-
-### 3. Scheduled Task Persistence `T1053.005`
-
-A scheduled task created with `schtasks /create` is a classic persistence foothold. The rule flags task creation from the command line so it can be tied back to the process that made it.
-
-### 4. Local Administrators Change `T1098`
-
-Adding an account to the local Administrators group (Windows Security Event 4732) is both privilege escalation and persistence. The rule narrows to the Administrators group specifically.
-
-### 5. Shadow File Access `T1003.008`
-
-Reading `/etc/shadow` dumps Linux password hashes for offline cracking. The rule fires when the file is accessed through sudo, building on Wazuh's built-in sudo decoders.
+<div align="center">
+  <a href="screenshots/20-sysmon-event-1.png"><img src="screenshots/20-sysmon-event-1.png" width="820" alt="A Sysmon process-creation event in detail"></a><br>
+  <em>One Sysmon process-creation event: command line, hashes, parent process, and user, the raw data the rules key on.</em>
+</div>
 
 ---
 
-## ⚔️ Attack Chain Simulated
+## Detection Coverage
 
-All simulations run against my own VMs on the isolated network, using harmless stand-in payloads so the logs are realistic without real damage.
+Five custom rules sit on top of Wazuh's built-in ruleset, each tied to a MITRE ATT&CK technique and a specific log source. They are authored in [`configs/local_rules.xml`](configs/local_rules.xml).
 
-**Windows:** `Brute force (10 failed logons) → Discovery (whoami / net) → Encoded PowerShell → Web download → Priv-esc (add to Administrators) → Persistence (scheduled task)`
+| # | Rule ID | Detection | Tactic | Technique | Log source | Severity |
+|---|---|---|---|---|---|---|
+| 1 | 100100 | PowerShell run with an encoded command | Execution | [T1059.001](https://attack.mitre.org/techniques/T1059/001/) | Sysmon EID 1 | High (13) |
+| 2 | 100101 | PowerShell downloading from the web | Command & Control | [T1105](https://attack.mitre.org/techniques/T1105/) | Sysmon EID 1 | Medium (10) |
+| 3 | 100102 | Scheduled task created via schtasks | Persistence | [T1053.005](https://attack.mitre.org/techniques/T1053/005/) | Sysmon EID 1 | Medium (10) |
+| 4 | 100110 | Account added to local Administrators | Persistence | [T1098](https://attack.mitre.org/techniques/T1098/) | Windows Security 4732 | High (12) |
+| 5 | 100200 | `/etc/shadow` read with sudo | Credential Access | [T1003.008](https://attack.mitre.org/techniques/T1003/008/) | Linux auth.log | High (12) |
 
-**Linux:** `SSH brute force → Credential access (/etc/shadow via sudo) → Backdoor account → sudo group`
+<div align="center">
+  <a href="screenshots/14-all-custom-rules.png"><img src="screenshots/14-all-custom-rules.png" width="820" alt="Custom rules firing in Threat Hunting"></a><br>
+  <em>Four of the five custom rules firing from the simulations (web download, scheduled task, local-admin change, and the Linux /etc/shadow read). The encoded-PowerShell rule is shown in the next section.</em>
+</div>
 
-> 💡 The "malicious" payloads are benign by design: the encoded command decodes to `whoami; hostname`, the scheduled task only echoes text, and the brute-force wordlist and target account exist only inside the lab. Each script has a cleanup switch, and VMs are snapshotted to a `clean-baseline` first. Scripts: [`scripts/`](scripts/).
+Wazuh's MITRE ATT&CK module maps every alert onto the matrix, which shows the breadth of behavior the lab exercises across both endpoints.
 
-[![SSH brute force detected in Threat Hunting](screenshots/15-ssh-bruteforce.png)](screenshots/15-ssh-bruteforce.png)
-*The SSH brute force from Kali against `linux-endpoint`: a burst of failed logins (rule 5760), the brute-force correlation alert (rule 5763, level 10), and the successful login with the cracked credentials (rule 5715). The full attack chain a SOC analyst would investigate.*
+<div align="center">
+  <a href="screenshots/18-mitre-framework.png"><img src="screenshots/18-mitre-framework.png" width="820" alt="MITRE ATT&CK framework coverage"></a><br>
+  <em>The ATT&CK framework view, techniques lit up by the simulations, from Password Guessing and SSH to PowerShell, Ingress Tool Transfer, Scheduled Task, and /etc/shadow access.</em>
+  <br><br>
+  <a href="screenshots/19-mitre-dashboard.png"><img src="screenshots/19-mitre-dashboard.png" width="820" alt="MITRE ATT&CK dashboard by agent"></a><br>
+  <em>The MITRE dashboard: tactics and techniques broken down by host, so each adversary behavior traces back to where it happened.</em>
+</div>
 
 ---
 
-## 🧪 Analyst Triage & Investigations
+## Rule-by-Rule Breakdown
 
-For each detection I write up a short investigation the way a SOC analyst would: what fired, what actually happened, whether it is malicious, the response, and how to tune the rule. Full write-ups are in [`docs/investigations.md`](docs/investigations.md).
+**1. Encoded PowerShell — `T1059.001`.** Attackers base64-encode PowerShell commands to hide intent from casual log review. The rule keys on `powershell.exe` with an `-EncodedCommand` argument (and its abbreviations) in the Sysmon process-creation event, while deliberately ignoring the benign `-ExecutionPolicy`. Triage means decoding the command and checking the parent process.
+
+<div align="center">
+  <a href="screenshots/12-detection-encoded-ps-table.png"><img src="screenshots/12-detection-encoded-ps-table.png" width="820" alt="Rule 100100 firing"></a><br>
+  <em>Rule 100100 (level 13) firing on win-endpoint for an encoded PowerShell command.</em>
+  <br><br>
+  <a href="screenshots/13-detection-encoded-ps-detail.png"><img src="screenshots/13-detection-encoded-ps-detail.png" width="820" alt="Encoded PowerShell alert detail"></a><br>
+  <em>The alert detail: the Sysmon event, the rule groups, and the auto-populated MITRE mapping (T1059.001, Execution, PowerShell).</em>
+</div>
+
+**2. PowerShell Web Download — `T1105`.** Catches PowerShell pulling a remote file via `Invoke-WebRequest`, `DownloadString`, `DownloadFile`, or `Net.WebClient`, often the first stage of a payload drop. Correlating it with the encoded-command rule strengthens the signal.
+
+**3. Scheduled Task Persistence — `T1053.005`.** A scheduled task created with `schtasks /create` is a classic persistence foothold. The rule flags task creation from the command line so it can be tied back to the process that made it.
+
+**4. Local Administrators Change — `T1098`.** Adding an account to the local Administrators group (Windows Security Event 4732) is both privilege escalation and persistence. The rule narrows specifically to the Administrators group so routine group changes stay quiet.
+
+**5. Shadow File Access — `T1003.008`.** Reading `/etc/shadow` dumps Linux password hashes for offline cracking. The rule fires when the file is read through sudo, building on Wazuh's built-in sudo decoders.
+
+---
+
+## Adversary Simulations
+
+Every attack runs against my own VMs on the isolated network, using harmless stand-in payloads so the logs are realistic without real damage (the encoded command just runs `whoami; hostname`, the scheduled task only echoes text, and the brute-force wordlist and target account exist only in the lab). Scripts are in [`scripts/`](scripts/).
+
+**Windows chain:** `Brute force (failed logons) → Discovery (whoami / net) → Encoded PowerShell → Web download → Privilege escalation (add to Administrators) → Persistence (scheduled task)`
+
+**Linux chain:** `SSH brute force → Credential access (/etc/shadow via sudo) → Backdoor account → sudo group`
+
+The SSH brute force is the clearest end-to-end story: a burst of failures, the correlation alert, and then a successful login with the cracked password, exactly the sequence an analyst pivots on.
+
+<div align="center">
+  <a href="screenshots/15-ssh-bruteforce.png"><img src="screenshots/15-ssh-bruteforce.png" width="820" alt="SSH brute force detected"></a><br>
+  <em>The SSH brute force from Kali against linux-endpoint: failed logins (5760), the brute-force correlation alert (5763, level 10), and the successful login with the cracked credentials (5715).</em>
+</div>
+
+---
+
+## Investigating the Alerts
+
+For each detection I wrote a short investigation the way a SOC analyst would hand it off: what triggered it, what actually happened, whether it is malicious, the response, and how the rule could be tuned. Full write-ups: [`docs/investigations.md`](docs/investigations.md).
 
 | # | Investigation | ATT&CK | Host | Verdict |
 |---|---|---|---|---|
@@ -167,47 +183,85 @@ For each detection I write up a short investigation the way a SOC analyst would:
 | 2 | SSH brute force into a successful login (5763 → 5715) | T1110.001 → T1078 | linux-endpoint | Malicious; account treated as compromised |
 | 3 | Account added to local Administrators (rule 100110) | T1098 | win-endpoint | Malicious; unauthorized privilege escalation |
 
-Each write-up ends with a tuning note (false-positive sources, where to raise severity, and what context makes the alert higher fidelity). See [`docs/investigations.md`](docs/investigations.md) for the full detail.
+Each one closes with a tuning note: where the rule could false-positive, where to raise severity, and what extra context makes the alert higher fidelity.
 
 ---
 
-## 📊 SOC Dashboard
+## Visibility and Dashboards
 
-A custom **SIEM Lab Overview** dashboard built in Wazuh to summarize the lab at a glance:
+I built a custom **SIEM Lab Overview** dashboard in Wazuh to summarize the environment at a glance: top triggered rules, alerts over time split by host, the MITRE techniques observed, and total alert volume.
 
-- **Top triggered rules** by count
-- **Alerts over time**, split by host (`wazuh-server`, `linux-endpoint`, `win-endpoint`)
-- **MITRE ATT&CK techniques** observed, ranked
-- **Total alerts** collected
-
-[![SIEM Lab Overview dashboard](screenshots/16-soc-dashboard.png)](screenshots/16-soc-dashboard.png)
-*The SIEM Lab Overview dashboard. The MITRE techniques panel shows the detection spread, Password Guessing, SSH, Valid Accounts, Ingress Tool Transfer, PowerShell, Brute Force, and more, all exercised by the simulations.*
+<div align="center">
+  <a href="screenshots/16-soc-dashboard.png"><img src="screenshots/16-soc-dashboard.png" width="820" alt="SIEM Lab Overview dashboard"></a><br>
+  <em>The SIEM Lab Overview dashboard. The MITRE techniques panel reflects the full detection spread across both endpoints.</em>
+</div>
 
 ---
 
-## 🛠️ Tools & Stack
+## Challenges and How I Solved Them
 
-**Wazuh 4.14** (SIEM / XDR) · **VirtualBox 7.1** (hypervisor) · **Ubuntu Server 24.04 LTS** · **Windows 11 Enterprise** with **Sysmon** (SwiftOnSecurity config) · **Kali Linux** with **Hydra** · **PowerShell** and **Bash** for simulation and cleanup · **MITRE ATT&CK** for technique mapping.
+The detection work was the easy part. Getting four machines built, networked, and reporting correctly is where the real time went, and working through these is where a lot of the learning happened. Full detail is in the [build log](docs/build-log.md).
+
+| Problem | How it showed up | Fix |
+|---|---|---|
+| Virtualization disabled | VMs refused to start (`VERR_VMX_MSR_ALL_VMX_DISABLED`) | Enabled Intel (VMX) virtualization in the host BIOS |
+| Undersized root disk | Wazuh install failed with "No space left on device" | The default LVM gave root half the disk; expanded it with `lvextend` + `resize2fs` |
+| Wedged package and busy ports | Reinstall blocked: ports 1515/55000 in use, `dpkg` exit 127 | Removed the broken maintainer scripts, purged the package, freed the ports |
+| Agent config never loaded | Windows Sysmon logs were not reaching Wazuh | A split multi-line paste dropped a `cp`, so the config never replaced the default; re-copied and verified it |
+| Host over-committed | The SIEM server stalled (CPU soft-lockup) with all four VMs running | Ran only the VMs I needed and was deliberate about resources |
+
+The common thread was simple and stuck with me: slow down and verify each step actually took effect instead of assuming it did.
 
 ---
 
-## 🧠 What I Learned
+## Skills Demonstrated
+
+- Deploying and operating a SIEM end to end (Wazuh manager, indexer, and dashboard)
+- Writing custom detection rules and mapping them to MITRE ATT&CK
+- Collecting and parsing Windows telemetry (Sysmon, Security, PowerShell) and Linux telemetry (auth / sudo)
+- Simulating adversary techniques safely: execution, persistence, privilege escalation, credential access, and brute force
+- Investigating alerts and producing analyst-style triage with response and tuning guidance
+- Building dashboards and visualizing detection coverage against ATT&CK
+- Linux and Windows administration, VirtualBox networking (NAT, static IPs, port forwarding), and methodical troubleshooting
+
+---
+
+## Reproduce This Lab
+
+```
+configs/      Centralized agent config (agent.conf) and custom rules (local_rules.xml)
+docs/         Phase-by-phase build guide (01-07), the build log, and the investigations
+scripts/      Network setup and attack-simulation scripts (PowerShell and Bash)
+screenshots/  Evidence for each phase
+```
+
+Start with [`docs/01-network-and-vms.md`](docs/01-network-and-vms.md) and work through the numbered phases; [`docs/build-log.md`](docs/build-log.md) shows how the real run went, troubleshooting included.
+
+---
+
+## Tech Stack
+
+**Wazuh 4.14** (SIEM / XDR) · **VirtualBox 7.1** · **Ubuntu Server 24.04 LTS** · **Windows 11 Enterprise** with **Sysmon** (SwiftOnSecurity config) · **Kali Linux** with **Hydra** · **PowerShell** and **Bash** · **MITRE ATT&CK** for technique mapping.
+
+---
+
+## Reflections and Takeaways
 
 _Reflection to be added._
 
 ---
 
-## 🤖 Using Claude as a Tool
+## How I Used AI
 
-I used Claude (Anthropic) as an assistant to scaffold this lab: drafting the detection rules, the simulation scripts, and this documentation, and checking the rule logic against the Wazuh ruleset. I am building, running, and validating every component myself, and no detection is marked working here until I have confirmed it fire in my own environment. Treating AI as a force multiplier while verifying its output is part of how I work.
+I used an AI assistant (Claude) to help scaffold this lab: drafting rule and script starting points, checking my rule logic against the Wazuh ruleset, and helping organize this documentation. I built, ran, and verified every component myself, nothing is marked working here until I confirmed it firing in my own environment, and when things broke (which was often) I worked through the fixes hands-on. Using AI as a force multiplier while verifying its output is how I like to work.
 
 ---
 
-## 📚 Other Labs in This Series
+## The Home Lab Series
 
 | # | Lab | Focus | Status |
 |---|---|---|---|
-| **1** | **SIEM & Log Analysis** | **Wazuh, log ingestion, custom detections, dashboards** | **In progress** |
+| **1** | **SIEM & Log Analysis** | **Wazuh, log ingestion, custom detections, dashboards** | **Complete** |
 | 2 | Network Traffic Analysis | Packet capture and analysis with Wireshark | Planned |
 | 3 | Vulnerability Scanning | Scanning a test network, prioritizing findings | Planned |
 | 4 | Incident Response Practice | Simulated incident, timeline, and write-up | Planned |
@@ -215,4 +269,6 @@ I used Claude (Anthropic) as an assistant to scaffold this lab: drafting the det
 
 ---
 
+<div align="center">
 <sub>Built by Justin Nguyen · Pursuing CompTIA A+ and Security+ · Part of an ongoing cybersecurity home lab series.</sub>
+</div>
