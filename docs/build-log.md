@@ -154,7 +154,7 @@ sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
 [![Disk space diagnosis and fix](../screenshots/05-disk-space-fix.png)](../screenshots/05-disk-space-fix.png)
 *The full sequence: the "No space left on device" error, diagnosing with `df`/`vgs`, expanding the volume with `lvextend` + `resize2fs`, and `df` confirming root grew from 29 GB to 57 GB.*
 
-> 💡 Lesson: Ubuntu Server's guided install often allocates only part of the disk to the root LVM volume. Check `df -h /` early; if root is smaller than the disk you created, `lvextend -l +100%FREE` plus `resize2fs` claims the rest.
+> 💡 Lesson: Ubuntu Server's guided install often allocates only part of the disk to the root LVM volume. Check `df -h /` early; if root is smaller than the disk you created, `lvextend -l +100%FREE` plus `resize2fs` claims the rest. On the later `linux-endpoint` install I avoided the problem entirely by leaving **LVM off** at the storage step (Phase 4), which gives root the whole disk from the start.
 
 ### 4. Reinstall blocked: ports 1515/55000 in use and a wedged package
 
