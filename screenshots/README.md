@@ -17,6 +17,7 @@ Evidence captured during the build, referenced from the [build log](../docs/buil
 - `11-both-agents-active.png` - both endpoints (linux-endpoint and win-endpoint) active in Wazuh
 - `12-detection-encoded-ps-table.png` - custom rule 100100 firing (encoded PowerShell) in Threat Hunting
 - `13-detection-encoded-ps-detail.png` - the 100100 alert detail with MITRE mapping
+- `14-all-custom-rules.png` - rules 100101/100102/100110/100200 firing from the attack simulations
 
 ## Still to capture (later phases)
 

@@ -140,6 +140,11 @@ The manager came back up `active (running)`, which confirms `local_rules.xml` pa
 [![Alert detail with MITRE fields](../screenshots/13-detection-encoded-ps-detail.png)](../screenshots/13-detection-encoded-ps-detail.png)
 *The full alert document: the Sysmon process-creation event and the auto-populated `rule.mitre.*` fields.*
 
+**All five rules validated.** Ran the remaining simulations (a PowerShell web download, a `schtasks` persistence entry, and adding an account to the local Administrators group on Windows; an `/etc/shadow` read with sudo on Linux). Every custom rule fired with the correct level and MITRE technique.
+
+[![All custom rules firing](../screenshots/14-all-custom-rules.png)](../screenshots/14-all-custom-rules.png)
+*Threat Hunting filtered to the lab rules: 100101, 100102, 100110 (win-endpoint) and 100200 (linux-endpoint), each with the expected description and level. With 100100 from earlier, all five are confirmed.*
+
 > 💡 On the first attempt the Windows agent pulled an empty `agent.conf`, so no Sysmon logs flowed. The cause was a multi-line paste that split the server-side `cp` commands, so the custom `agent.conf` never replaced the default. Re-running the copies one line at a time (and confirming the file with `head`) fixed it. Lesson: paste multi-line command blocks one line at a time over SSH, and verify a config is actually in place before assuming it loaded.
 
 ---
