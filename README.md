@@ -22,7 +22,7 @@
 
 ---
 
-I built this lab to learn detection engineering by doing it rather than reading about it. I stood up the [Wazuh](https://wazuh.com/) SIEM on an isolated virtual network, pointed Windows and Linux agents at it, ran safe attacker simulations against my own machines, and wrote custom rules to catch each technique. Every detection here was triggered on purpose and confirmed in my own environment, and each one is written up the way an analyst would hand it off: what fired, what actually happened, and what to do about it.
+I built this lab to learn detection engineering by doing it rather than reading about it. I set up the [Wazuh](https://wazuh.com/) SIEM on an isolated virtual network, pointed Windows and Linux agents at it, ran safe attacker simulations against my own machines, and wrote custom rules to catch each technique. Every detection here was triggered on purpose and confirmed in my own environment, and each one is written up the way an analyst would hand it off: what fired, what actually happened, and what to do about it.
 
 This README is the walkthrough. The [`docs/`](docs/) folder holds the phase-by-phase build guide, and [`docs/build-log.md`](docs/build-log.md) is the honest running log of what I actually did, including everything that broke.
 
