@@ -79,4 +79,4 @@ Name it `clean-baseline`.
 
 - [x] `linux-endpoint` Active in Agents management (`screenshots/10-linux-agent-active.png`)
 - [x] `win-endpoint` Active in Agents management (`screenshots/11-both-agents-active.png`)
-- [ ] The failed SSH login alert
+- [x] The failed SSH login alert (`screenshots/15-ssh-bruteforce.png`)
